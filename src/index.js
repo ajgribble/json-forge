@@ -25,7 +25,19 @@ export default class JSONForge {
                     if (this._compressors[mapVal]) {
                         return this._compressors[mapVal](obj[key], mapVal);
                     }
-                    level[mapVal] = this.process(obj[key]);
+
+                    if (typeof mapVal === 'function') {
+                      level[key] = this.process(mapVal(obj[key], key));
+                    } else if (isPlainObject(mapVal)) {
+                      const newKey = keys(mapVal)[0];
+                      const newVal = mapVal[newKey];
+                      
+                      level[newKey] = typeof newVal === 'function'
+                        ? this.process(newVal(obj[key], key))
+                        : this.process(newVal);
+                    } else {
+                      level[mapVal] = this.process(obj[key]);
+                    }
                 } else if (this._compressors[key]) {
                     return this._compressors[key](obj[key], key);
                 } else {
